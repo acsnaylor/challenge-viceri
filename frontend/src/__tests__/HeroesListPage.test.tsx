@@ -72,5 +72,7 @@ describe('HeroesListPage', () => {
     await userEvent.click(delBtn as HTMLElement)
 
     await waitFor(() => expect(deleteHero).toHaveBeenCalledWith(1))
+
+    await screen.findByText('Nenhum herói cadastrado')
   })
 })

@@ -30,6 +30,13 @@ export function HeroesListPage() {
   async function onDelete(id: number, heroName: string) {
     if (!confirm(`Tem certeza que deseja excluir o herói ${heroName}?`)) return
     await deleteHero(id)
+
+    setData((prev) => {
+      if (!prev) return prev
+      const nextResult = (prev.result || []).filter((h) => h.id !== id)
+      return { ...prev, result: nextResult }
+    })
+
     await load()
   }
 
