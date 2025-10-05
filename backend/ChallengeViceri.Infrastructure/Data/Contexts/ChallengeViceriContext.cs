@@ -22,6 +22,9 @@ namespace ChallengeViceri.Infrastructure.Data.Contexts
             modelBuilder.Entity<Hero>()
                 .HasIndex(h => h.HeroName)
                 .IsUnique();
+            modelBuilder.Entity<Superpower>()
+                .HasIndex(s => s.Name)
+                .IsUnique();
             modelBuilder.Entity<HeroSuperpower>()
                 .HasKey(hs => new { hs.HeroId, hs.SuperpowerId });
 

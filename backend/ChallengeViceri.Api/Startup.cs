@@ -101,22 +101,10 @@ namespace ChallengeViceri.Api
             });
 
             dbContext.Database.Migrate();
-            if (!dbContext.Superpowers.Any())
-            {
-                dbContext.Superpowers.AddRange(new[]
-                {
-                    new Superpower { Name = "Força", Description = "Força sobre-humana" },
-                    new Superpower { Name = "Velocidade", Description = "Movimento ultra rápido" },
-                    new Superpower { Name = "Voo", Description = "Capacidade de voar" },
-                    new Superpower { Name = "Invisibilidade", Description = "Ficar invisÃ­vel" },
-                    new Superpower { Name = "Telepatia", Description = "Ler e influenciar mentes" }
-                });
-                dbContext.SaveChanges();
-            }
 
-            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseCors("AllowAll");
 
             app.UseEndpoints(endpoints =>
             {

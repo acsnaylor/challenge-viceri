@@ -33,12 +33,13 @@ namespace ChallengeViceri.Application.Services
             {
                 Name = request.Name,
                 HeroName = request.HeroName,
-                BirthDate = request.BirthDate,
+                BirthDate = request.BirthDate.HasValue ? DateTime.SpecifyKind(request.BirthDate.Value, DateTimeKind.Unspecified) : null,
                 Height = request.Height,
                 Weight = request.Weight
             };
 
             await _heroRepository.InsertAsync(hero, cancellationToken);
+            _heroRepository.SaveChanges();
 
             if (request.SuperpowerIds?.Any() == true)
             {
@@ -50,9 +51,8 @@ namespace ChallengeViceri.Application.Services
                         SuperpowerId = spId
                     }, cancellationToken);
                 }
+                _heroRepository.SaveChanges();
             }
-
-            _heroRepository.SaveChanges();
 
             var response = await MapToHeroResponseAsync(hero.Id, cancellationToken);
             return new ApiResponse<HeroResponse>(HttpStatusCode.Created, response);
@@ -128,11 +128,9 @@ namespace ChallengeViceri.Application.Services
 
             existing.Name = request.Name;
             existing.HeroName = request.HeroName;
-            existing.BirthDate = request.BirthDate;
+            existing.BirthDate = request.BirthDate.HasValue ? DateTime.SpecifyKind(request.BirthDate.Value, DateTimeKind.Unspecified) : null;
             existing.Height = request.Height;
             existing.Weight = request.Weight;
-
-            _heroRepository.Update(existing);
 
             var current = existing.HeroSuperpowers.Select(hs => hs.SuperpowerId).ToHashSet();
             var desired = (request.SuperpowerIds ?? new List<int>()).Distinct().ToHashSet();
@@ -140,10 +138,13 @@ namespace ChallengeViceri.Application.Services
             var toRemove = current.Except(desired).ToList();
             var toAdd = desired.Except(current).ToList();
 
-            foreach (var spId in toRemove)
+            if (toRemove.Count > 0)
             {
-                var hs = new HeroSuperpower { HeroId = existing.Id, SuperpowerId = spId };
-                _heroSuperpowerRepository.Delete(hs);
+                var trackedToRemove = existing.HeroSuperpowers.Where(hs => toRemove.Contains(hs.SuperpowerId)).ToList();
+                foreach (var hs in trackedToRemove)
+                {
+                    _heroSuperpowerRepository.Delete(hs);
+                }
             }
 
             foreach (var spId in toAdd)

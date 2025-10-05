@@ -3,6 +3,7 @@ using System;
 using ChallengeViceri.Infrastructure.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChallengeViceri.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ChallengeViceriContext))]
-    partial class ChallengeViceriContextModelSnapshot : ModelSnapshot
+    [Migration("20251005044831_SeedSuperpowers")]
+    partial class SeedSuperpowers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,9 +100,6 @@ namespace ChallengeViceri.Infrastructure.Data.Migrations
                         .HasColumnName("Superpoder");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
 
                     b.ToTable("Superpoderes", (string)null);
                 });
