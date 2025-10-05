@@ -169,14 +169,14 @@ namespace ChallengeViceri.Application.Services
             _heroRepository.Delete(hero);
             _heroRepository.SaveChanges();
 
-            return new ApiResponse<string>(HttpStatusCode.OK, $"Super-herói '{hero.HeroName}' excluÃ­do com sucesso.");
+            return new ApiResponse<string>(HttpStatusCode.OK, $"Super-herói '{hero.HeroName}' excluí­do com sucesso.");
         }
 
         private async Task<string?> ValidateHeroRequestAsync(HeroRequest request, int? updatingId, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.Name)) return "Nome Ã© obrigatório.";
-            if (string.IsNullOrWhiteSpace(request.HeroName)) return "Nome de herói Ã© obrigatório.";
-            if (request.BirthDate == null) return "Data de nascimento Ã© obrigatória.";
+            if (string.IsNullOrWhiteSpace(request.Name)) return "Nome é obrigatório.";
+            if (string.IsNullOrWhiteSpace(request.HeroName)) return "Nome de herói é obrigatório.";
+            if (request.BirthDate == null) return "Data de nascimento é obrigatória.";
             if (request.Height <= 0) return "Altura deve ser maior que zero.";
             if (request.Weight <= 0) return "Peso deve ser maior que zero.";
             if (request.SuperpowerIds == null || !request.SuperpowerIds.Any()) return "Selecione ao menos um superpoder.";
