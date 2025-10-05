@@ -17,6 +17,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { HeroRequest, SuperpowerResponse } from '@services/types'
 import { getSuperpowers } from '@services/superpowers'
 import { createHero, getHero, updateHero } from '@services/heroes'
+import { useToast } from '@components/ui/toast'
 
 type HeroFormData = {
   name: string
@@ -33,6 +34,7 @@ export function HeroFormPage({ onBack }: HeroFormPageProps) {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { show } = useToast()
 
   const [superpowers, setSuperpowers] = useState<SuperpowerResponse[]>([])
   const [selectedPowers, setSelectedPowers] = useState<number[]>([])
@@ -77,9 +79,17 @@ export function HeroFormPage({ onBack }: HeroFormPageProps) {
       weight: parseFloat(data.weight.replace(',', '.')),
       superpowerIds: selectedPowers,
     }
-    if (isEdit && id) await updateHero(Number(id), payload)
-    else await createHero(payload)
-    navigate('/heroes')
+    try {
+      if (isEdit && id) await updateHero(Number(id), payload)
+      else await createHero(payload)
+      navigate('/heroes')
+    } catch (err: any) {
+      const api = err?.response?.data as any
+      const errorsObj = api?.errors as Record<string, string> | undefined
+      const validationMsg = errorsObj?.Validation || (errorsObj ? Object.values(errorsObj)[0] : undefined)
+      const msg = validationMsg || api?.message || 'Ocorreu um erro ao salvar.'
+      show(msg, { variant: 'error' })
+    }
   }
 
   useEffect(() => {
