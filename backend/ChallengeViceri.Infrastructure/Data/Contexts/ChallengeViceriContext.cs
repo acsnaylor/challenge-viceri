@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ChallengeViceri.Domain.Entities;
 
 namespace ChallengeViceri.Infrastructure.Data.Contexts
@@ -16,13 +16,15 @@ namespace ChallengeViceri.Infrastructure.Data.Contexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            // Table names to match existing database
             modelBuilder.Entity<Hero>().ToTable("Herois");
             modelBuilder.Entity<Superpower>().ToTable("Superpoderes");
             modelBuilder.Entity<HeroSuperpower>().ToTable("HeroisSuperpoderes");
-
-            // Composite key and relationships for join entity
+            modelBuilder.Entity<Hero>()
+                .HasIndex(h => h.HeroName)
+                .IsUnique();
+            modelBuilder.Entity<Superpower>()
+                .HasIndex(s => s.Name)
+                .IsUnique();
             modelBuilder.Entity<HeroSuperpower>()
                 .HasKey(hs => new { hs.HeroId, hs.SuperpowerId });
 

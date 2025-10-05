@@ -1,4 +1,5 @@
 ﻿using ChallengeViceri.Api.Extensions;
+using ChallengeViceri.Domain.Entities;
 using ChallengeViceri.Infrastructure.Data.Contexts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,15 +7,13 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.IO;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace ChallengeViceri.Api
 {
@@ -23,43 +22,25 @@ namespace ChallengeViceri.Api
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-            var logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
-            if (!Directory.Exists(logDirectory))
-            {
-                Directory.CreateDirectory(logDirectory);
-            }
-
-            var logFilePath = Path.Combine(logDirectory, $".log");
         }
-
 
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             services.AddDbContext<ChallengeViceriContext>(options =>
-                    options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(Configuration.GetConnectionString("Default")));
 
             services.AddDIRepository();
+            services.AddDIApplication();
+
             services.AddLogging(builder =>
             {
                 builder.ClearProviders();
                 builder.SetMinimumLevel(LogLevel.Warning);
             });
 
-            //services.AddControllers().AddNewtonsoftJson(options =>
-            //{
-            //    options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver
-            //    {
-            //        NamingStrategy = new Newtonsoft.Json.Serialization.CamelCaseNamingStrategy()
-            //    };
-            //    options.SerializerSettings.PreserveReferencesHandling = Newtonsoft.Json.PreserveReferencesHandling.None;
-            //    options.SerializerSettings.MaxDepth = 5555;
-            //    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
-            //});
-
+            services.AddControllers();
             services.AddHttpContextAccessor();
 
             services.AddCors(options =>
@@ -74,54 +55,30 @@ namespace ChallengeViceri.Api
                     });
             });
 
+            services.AddSwaggerExamplesFromAssemblyOf<Startup>();
+
             services.AddSwaggerGen(c =>
             {
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
-
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "mleads.app", Version = "v1" });
-
-                c.AddServer(new OpenApiServer
+                if (File.Exists(xmlPath))
                 {
-                    Url = "https://api-v2.mleads.app",
-                    Description = "Production"
-                });
+                    c.IncludeXmlComments(xmlPath);
+                }
 
-                c.AddServer(new OpenApiServer
-                {
-                    Url = "https://localhost:5001",
-                    Description = "Hosted via Local"
-                });
+                var domainXml = Path.Combine(AppContext.BaseDirectory, "ChallengeViceri.Domain.xml");
+                if (File.Exists(domainXml)) c.IncludeXmlComments(domainXml);
+                var applicationXml = Path.Combine(AppContext.BaseDirectory, "ChallengeViceri.Application.xml");
+                if (File.Exists(applicationXml)) c.IncludeXmlComments(applicationXml);
+                var infrastructureXml = Path.Combine(AppContext.BaseDirectory, "ChallengeViceri.Infrastructure.xml");
+                if (File.Exists(infrastructureXml)) c.IncludeXmlComments(infrastructureXml);
 
-                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ChallengeViceri API", Version = "v1" });
+                c.AddServer(new OpenApiServer { Url = "https://localhost:5001", Description = "Local HTTPS" });
+                c.AddServer(new OpenApiServer { Url = "http://localhost:5000", Description = "Local HTTP" });
 
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Description = "JWT Authorization header using the Bearer scheme."
-                });
-
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        new string[] {}
-                    }
-                });
-
-                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+                c.ExampleFilters();
+                c.EnableAnnotations();
             });
 
             services.Configure<IISServerOptions>(options => options.AllowSynchronousIO = true);
@@ -130,42 +87,24 @@ namespace ChallengeViceri.Api
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger, ChallengeViceriContext dbContext)
         {
-            app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("./v1/swagger.json", "api.mleads.app");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "ChallengeViceri API v1");
                 c.DefaultModelsExpandDepth(-1);
                 c.EnableFilter();
             });
 
-            logger.LogInformation("Swagger está ativo: https://localhost:5001/swagger/index.html");
+            dbContext.Database.Migrate();
 
-            if (Configuration.GetValue<bool>("Database:Recreate"))
-            {
-                dbContext.Database.EnsureDeleted();
-                dbContext.Database.EnsureCreated();
-            }
-
-            var uploadPath = Configuration.GetValue<string>("FileUpload:UploadPath");
-            if (!Directory.Exists(uploadPath))
-            {
-                Directory.CreateDirectory(uploadPath);
-            }
-
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(uploadPath),
-                RequestPath = "/assets"
-            });
-
-            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseStaticFiles();
-            app.UseAuthentication();
-            app.UseAuthorization();
+            app.UseCors("AllowAll");
 
             app.UseEndpoints(endpoints =>
             {
@@ -174,3 +113,4 @@ namespace ChallengeViceri.Api
         }
     }
 }
+

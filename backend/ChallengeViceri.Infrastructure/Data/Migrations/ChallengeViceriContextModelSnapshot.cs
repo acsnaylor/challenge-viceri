@@ -55,6 +55,9 @@ namespace ChallengeViceri.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("HeroName")
+                        .IsUnique();
+
                     b.ToTable("Herois", (string)null);
                 });
 
@@ -94,6 +97,9 @@ namespace ChallengeViceri.Infrastructure.Data.Migrations
                         .HasColumnName("Superpoder");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Superpoderes", (string)null);
                 });

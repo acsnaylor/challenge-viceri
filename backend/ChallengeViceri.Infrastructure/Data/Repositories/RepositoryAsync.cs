@@ -206,3 +206,4 @@ namespace ChallengeViceri.Infrastructure.Data.Repositories
         }
     }
 }
+

@@ -13,3 +13,4 @@ namespace ChallengeViceri.Domain.Entities
         public int Id { get; set; }
     }
 }
+

@@ -47,3 +47,4 @@ namespace ChallengeViceri.Infrastructure.Data.Repositories
         EntityEntry<T> Entry(T entity);
     }
 }
+

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChallengeViceri.Domain.Entities
 {
@@ -14,3 +14,4 @@ namespace ChallengeViceri.Domain.Entities
         public Superpower? Superpower { get; set; }
     }
 }
+
