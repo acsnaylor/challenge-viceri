@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from '@components/ui/card'
 import { Button } from '@components/ui/button'
 import { Badge } from '@components/ui/badge'
 import { Edit, Trash2, Zap, Plus, HomeIcon } from 'lucide-react'
-import { deleteHero, getHeroes } from '../../services/heroes'
+import { deleteHero, getHeroes } from '@services/heroes'
 import { ApiResponse, HeroResponse } from '../../services/types'
 import { format } from 'date-fns'
 
@@ -123,6 +123,7 @@ export function HeroesListPage() {
                         className='h-8 w-8 border-white/20 bg-white/10 text-white hover:border-red-600 hover:bg-red-600'
                       >
                         <Trash2 className='h-4 w-4' />
+                        <span className='sr-only'>Trash</span>
                       </Button>
                     </div>
                   </div>
