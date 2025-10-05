@@ -29,4 +29,3 @@ export type ApiResponse<T> = {
   result?: T | null
   errors?: Record<string, string> | null
 }
-

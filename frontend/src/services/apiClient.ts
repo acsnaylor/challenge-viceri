@@ -13,6 +13,5 @@ api.interceptors.response.use(
   (r) => r,
   (e) => {
     return Promise.reject(e)
-  }
+  },
 )
-
