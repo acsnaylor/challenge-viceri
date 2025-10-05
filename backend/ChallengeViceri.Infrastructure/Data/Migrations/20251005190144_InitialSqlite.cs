@@ -1,21 +1,22 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace ChallengeViceri.Infrastructure.Data.Migrations
 {
-    public partial class InitialCreate : Migration
+    /// <inheritdoc />
+    public partial class InitialSqlite : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
                 name: "Herois",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     Nome = table.Column<string>(type: "character varying(120)", nullable: false),
                     NomeHeroi = table.Column<string>(type: "character varying(120)", nullable: false),
                     DataNascimento = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
@@ -31,8 +32,8 @@ namespace ChallengeViceri.Infrastructure.Data.Migrations
                 name: "Superpoderes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     Superpoder = table.Column<string>(type: "character varying(50)", nullable: false),
                     Descricao = table.Column<string>(type: "character varying(250)", nullable: true)
                 },
@@ -45,8 +46,8 @@ namespace ChallengeViceri.Infrastructure.Data.Migrations
                 name: "HeroisSuperpoderes",
                 columns: table => new
                 {
-                    HeroiId = table.Column<int>(type: "integer", nullable: false),
-                    SuperpoderId = table.Column<int>(type: "integer", nullable: false)
+                    HeroiId = table.Column<int>(type: "INTEGER", nullable: false),
+                    SuperpoderId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -66,10 +67,24 @@ namespace ChallengeViceri.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Herois_NomeHeroi",
+                table: "Herois",
+                column: "NomeHeroi",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_HeroisSuperpoderes_SuperpoderId",
                 table: "HeroisSuperpoderes",
                 column: "SuperpoderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Superpoderes_Superpoder",
+                table: "Superpoderes",
+                column: "Superpoder",
+                unique: true);
         }
+
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
@@ -83,4 +98,3 @@ namespace ChallengeViceri.Infrastructure.Data.Migrations
         }
     }
 }
-

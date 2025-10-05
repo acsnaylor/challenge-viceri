@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.IO;
+using System.Linq;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -28,8 +29,17 @@ namespace ChallengeViceri.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ChallengeViceriContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("Default")));
+            var useInMemory = Configuration.GetValue<bool>("UseInMemoryDatabase");
+            if (useInMemory)
+            {
+                services.AddDbContext<ChallengeViceriContext>(options =>
+                    options.UseInMemoryDatabase("ChallengeViceriDb"));
+            }
+            else
+            {
+                services.AddDbContext<ChallengeViceriContext>(options =>
+                    options.UseSqlite(Configuration.GetConnectionString("Default")));
+            }
 
             services.AddDIRepository();
             services.AddDIApplication();
@@ -100,7 +110,28 @@ namespace ChallengeViceri.Api
                 c.EnableFilter();
             });
 
-            dbContext.Database.Migrate();
+            if (dbContext.Database.IsRelational())
+            {
+                dbContext.Database.Migrate();
+            }
+
+            if (!dbContext.Superpowers.Any())
+            {
+                dbContext.Superpowers.AddRange(new[]
+                {
+                    new Superpower { Name = "Força", Description = "Força sobre-humana" },
+                    new Superpower { Name = "Velocidade", Description = "Mover-se em alta velocidade" },
+                    new Superpower { Name = "Voo", Description = "Capacidade de voar" },
+                    new Superpower { Name = "Invisibilidade", Description = "Ficar invisível" },
+                    new Superpower { Name = "Telepatia", Description = "Ler e comunicar-se pela mente" },
+                    new Superpower { Name = "Telecinese", Description = "Mover objetos com a mente" },
+                    new Superpower { Name = "Super Resistência", Description = "Alta resistência a danos" },
+                    new Superpower { Name = "Regeneração", Description = "Cura acelerada" },
+                    new Superpower { Name = "Rajada de Energia", Description = "Disparos de energia" },
+                    new Superpower { Name = "Controle do Tempo", Description = "Manipular a passagem do tempo" }
+                });
+                dbContext.SaveChanges();
+            }
 
             app.UseHttpsRedirection();
             app.UseRouting();
